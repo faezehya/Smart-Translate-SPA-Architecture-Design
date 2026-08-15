@@ -1,44 +1,51 @@
 @echo off
 cd /d "%~dp0"
-title Smart Translate SPA - Starter
+title Smart Translate SPA - Build Portable .exe
 
 echo ===============================================================================
-echo                Smart Translate SPA - Windows Starter
+echo            Smart Translate SPA - Build Portable Executable (.exe)
 echo ===============================================================================
 echo.
 
-echo [1/3] Checking Node.js runtime...
+echo [1/4] Checking Node.js runtime...
 call node -v >nul 2>&1
 if %ERRORLEVEL% NEQ 0 goto NO_NODE
 
-echo [SUCCESS] Node.js is detected:
+echo [SUCCESS] Node.js is ready:
 call node -v
 echo.
 
-echo [2/3] Checking dependencies (node_modules)...
+echo [2/4] Checking dependencies...
 if not exist "node_modules\" (
-    echo [INFO] First run detected. Installing dependencies via npm install...
-    echo Please wait a moment...
+    echo [INFO] Installing project dependencies (npm install)...
     call npm install
     if %ERRORLEVEL% NEQ 0 goto INSTALL_ERROR
-    echo [SUCCESS] Dependencies installed successfully.
-    echo.
-) else (
-    echo [SUCCESS] Dependencies already exist.
-    echo.
 )
-
-echo [3/3] Launching local server at http://localhost:3000 ...
-echo ===============================================================================
-echo   App URL: http://localhost:3000
-echo   NOTE: Keep this window open while using the application.
-echo ===============================================================================
+echo [SUCCESS] Dependencies verified.
 echo.
 
-start "" http://localhost:3000
+echo [3/4] Compiling web application (npm run build)...
+call npm run build
+if %ERRORLEVEL% NEQ 0 goto BUILD_ERROR
+echo.
+echo [SUCCESS] Web assets compiled.
+echo.
 
-call npm run dev
-if %ERRORLEVEL% NEQ 0 goto DEV_ERROR
+echo [4/4] Generating Standalone Portable .exe...
+call npm run dist:portable
+if %ERRORLEVEL% NEQ 0 goto PACK_ERROR
+
+echo.
+echo ===============================================================================
+echo [SUCCESS] Portable .exe created successfully in 'release' folder!
+echo ===============================================================================
+echo.
+echo Output Directory: %~dp0release
+echo.
+
+if exist "%~dp0release" (
+    explorer "%~dp0release"
+)
 goto END
 
 :NO_NODE
@@ -46,22 +53,27 @@ echo.
 echo ===============================================================================
 echo [ERROR] Node.js was not found on your system!
 echo Please download and install Node.js (LTS version) from: https://nodejs.org/
-echo If you recently installed Node.js, please RESTART your computer.
 echo ===============================================================================
 goto END
 
 :INSTALL_ERROR
 echo.
 echo ===============================================================================
-echo [ERROR] npm install encountered an error.
-echo Please check your internet connection and try running 'npm install' manually.
+echo [ERROR] Failed to install project dependencies.
 echo ===============================================================================
 goto END
 
-:DEV_ERROR
+:BUILD_ERROR
 echo.
 echo ===============================================================================
-echo [ERROR] Dev server stopped unexpectedly.
+echo [ERROR] Frontend compilation (npm run build) failed.
+echo ===============================================================================
+goto END
+
+:PACK_ERROR
+echo.
+echo ===============================================================================
+echo [ERROR] electron-builder encountered an issue while packaging.
 echo ===============================================================================
 goto END
 

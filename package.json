@@ -13,9 +13,9 @@
     "clean": "rm -rf dist release server.js",
     "lint": "tsc --noEmit",
     "electron:dev": "vite",
-    "electron:build": "vite build && npx electron-builder",
-    "dist:win": "vite build && npx electron-builder --win --x64",
-    "dist:portable": "vite build && npx electron-builder --win portable --x64"
+    "electron:build": "vite build && electron-builder",
+    "dist:win": "vite build && electron-builder --win --x64",
+    "dist:portable": "vite build && electron-builder --win portable --x64"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

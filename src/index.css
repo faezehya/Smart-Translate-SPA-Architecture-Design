@@ -1,0 +1,173 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-fa: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-en: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    
+    /* Editorial Palette Tokens */
+    --editorial-canvas: #070d18;
+    --editorial-panel: #0a1120;
+    --editorial-card: #16243f;
+    --editorial-card-hover: #1b2c4e;
+    --editorial-border: #1e3152;
+    --editorial-border-focus: #38bdf8;
+    
+    /* High Contrast Typography Tokens */
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a9c9;
+    --text-faint: #5e779d;
+    
+    /* Editorial Accent Highlights */
+    --accent-sky: #38bdf8;
+    --accent-emerald: #10b981;
+    --accent-amber: #f59e0b;
+    --accent-rose: #f43f5e;
+  }
+
+  html {
+    color-scheme: dark;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    font-family: var(--font-fa);
+    background-color: var(--editorial-canvas);
+    color: var(--text-primary);
+    line-height: 1.75;
+    letter-spacing: normal;
+  }
+}
+
+/* Persian Long-Form Reading Typography */
+.font-fa {
+  font-family: var(--font-fa);
+  direction: rtl;
+  text-align: right;
+  font-feature-settings: "kern" 1, "liga" 1;
+  line-height: 1.95;
+  letter-spacing: -0.01em;
+}
+
+/* English Source Typography */
+.font-en {
+  font-family: var(--font-en);
+  direction: ltr;
+  text-align: left;
+  letter-spacing: -0.015em;
+  line-height: 1.68;
+}
+
+/* High Contrast Editorial Prose for Long-Form Documents */
+.editorial-prose {
+  font-family: var(--font-fa);
+  font-size: 1.05rem;
+  line-height: 2.1;
+  color: #f1f5f9;
+  text-align: justify;
+  text-justify: inter-word;
+  hyphens: auto;
+}
+
+.editorial-prose p {
+  margin-bottom: 1.25rem;
+}
+
+.editorial-prose-en {
+  font-family: var(--font-en);
+  font-size: 0.95rem;
+  line-height: 1.75;
+  color: #cbd5e1;
+}
+
+/* Editorial Glass & Surface Cards */
+.editorial-surface {
+  background: var(--editorial-panel);
+  border: 1px solid var(--editorial-border);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.45);
+}
+
+.editorial-card {
+  background: var(--editorial-card);
+  border: 1px solid var(--editorial-border);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.editorial-card:hover {
+  background: var(--editorial-card-hover);
+  border-color: rgba(56, 189, 248, 0.4);
+}
+
+/* Custom Editorial Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1e3152;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #38bdf8;
+}
+
+/* Text Selection Glow */
+::selection {
+  background-color: rgba(56, 189, 248, 0.35);
+  color: #ffffff;
+}
+
+::-moz-selection {
+  background-color: rgba(56, 189, 248, 0.35);
+  color: #ffffff;
+}
+
+/* Smooth Focus Rings */
+:focus-visible {
+  outline: 2px solid #38bdf8;
+  outline-offset: 2px;
+}
+
+/* Pulse Animations for Engine Indicators */
+@keyframes pulseGlow {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.75;
+  }
+}
+
+.pulse-dot {
+  animation: pulseGlow 2s infinite ease-in-out;
+}
+
+/* Print Optimization for Document Output */
+@media print {
+  body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    font-size: 12pt;
+    line-height: 1.8;
+  }
+  header, aside, button, #queue-section, #settings-drawer-panel {
+    display: none !important;
+  }
+  .editorial-prose, textarea {
+    color: #000000 !important;
+    background: transparent !important;
+    border: none !important;
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "Smart Translate SPA",
+  "description": "Client-side document translation web application supporting Ollama Local LLM and Google Translate with Persian typography optimization, split-pane sync editing, and multi-format export.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,7 +1,6 @@
 @echo off
-setlocal EnableDelayedExpansion
+cd /d "%~dp0"
 title Smart Translate SPA - Fix Ollama CORS
-cls
 
 echo ===============================================================================
 echo                Fix Ollama CORS Configuration for Windows
@@ -12,12 +11,13 @@ echo.
 
 powershell -NoProfile -ExecutionPolicy Bypass -Command "[System.Environment]::SetEnvironmentVariable('OLLAMA_ORIGINS', '*', 'User')"
 
+echo.
 echo [SUCCESS] OLLAMA_ORIGINS variable is now configured with value '*'.
 echo.
 echo Important Notes:
-echo 1. If the Ollama service/app is currently running in your system tray (Taskbar),
-echo    right-click its icon, select 'Quit Ollama', and start Ollama again.
-echo 2. In Smart Translate SPA Settings, click 'Probe Models' to load your local models.
+echo 1. If Ollama is running in your taskbar system tray, right-click and 'Quit Ollama'.
+echo 2. Start Ollama again to apply the new CORS permission.
+echo 3. In Smart Translate SPA Settings, click 'Probe Models' to connect.
 echo.
 echo ===============================================================================
 pause

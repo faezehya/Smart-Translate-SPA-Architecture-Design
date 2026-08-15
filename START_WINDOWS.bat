@@ -1,5 +1,5 @@
 @echo off
-rem Switch to the directory where this script is located
+setlocal EnableDelayedExpansion
 cd /d "%~dp0"
 title Smart Translate SPA - Starter
 
@@ -8,82 +8,62 @@ echo                Smart Translate SPA - Windows Starter
 echo ===============================================================================
 echo.
 
-rem Step 1: Check Node.js
 echo [1/3] Checking Node.js runtime...
-node -v >nul 2>&1
-if %ERRORLEVEL% NEQ 0 goto NO_NODE
+where node >nul 2>&1
+if errorlevel 1 (
+    echo.
+    echo ===============================================================================
+    echo [ERROR] Node.js was not found on your system PATH!
+    echo.
+    echo Please ensure Node.js is installed from https://nodejs.org/
+    echo If you already installed Node.js, please RESTART your computer once.
+    echo ===============================================================================
+    echo.
+    pause
+    goto EXIT_SCRIPT
+)
 
-echo [SUCCESS] Node.js is installed.
-node -v
+for /f "tokens=*" %%v in ('node -v 2^>nul') do set NODE_VERSION=%%v
+echo [SUCCESS] Node.js is detected: !NODE_VERSION!
 echo.
 
-rem Step 2: Check dependencies
 echo [2/3] Checking dependencies (node_modules)...
-if not exist "node_modules\" goto INSTALL_DEPS
-echo [SUCCESS] Dependencies already exist.
-echo.
-goto START_APP
+if not exist "%~dp0node_modules\" (
+    echo [INFO] First run detected. Installing dependencies via npm install...
+    echo Please wait a moment...
+    call npm install
+    if errorlevel 1 (
+        echo.
+        echo [ERROR] npm install encountered an error.
+        echo Please check your internet connection and try running 'npm install' manually.
+        echo.
+        pause
+        goto EXIT_SCRIPT
+    )
+    echo [SUCCESS] Dependencies installed successfully.
+    echo.
+) else (
+    echo [SUCCESS] Dependencies already exist.
+    echo.
+)
 
-:INSTALL_DEPS
-echo [INFO] First run detected. Installing dependencies (npm install)...
-echo Please wait a moment...
-call npm install
-if %ERRORLEVEL% NEQ 0 goto INSTALL_ERROR
-echo [SUCCESS] Dependencies installed successfully.
-echo.
-goto START_APP
-
-:START_APP
-rem Step 3: Launch Local Server and Open Browser
-echo [3/3] Starting local server at http://localhost:3000 ...
-echo.
+echo [3/3] Launching local server at http://localhost:3000 ...
 echo ===============================================================================
 echo   App URL: http://localhost:3000
-echo   Press Ctrl + C in this window to stop the application.
+echo   NOTE: Keep this window open while using the application.
 echo ===============================================================================
 echo.
 
-rem Open default browser in 2 seconds
 start "" http://localhost:3000
 
-rem Run dev server
 call npm run dev
-if %ERRORLEVEL% NEQ 0 goto DEV_ERROR
+if errorlevel 1 (
+    echo.
+    echo [ERROR] Dev server stopped with an error code.
+    echo.
+)
 
-goto END
-
-:NO_NODE
+:EXIT_SCRIPT
 echo.
-echo ===============================================================================
-echo [ERROR] Node.js is not found on your system!
-echo Please download and install Node.js (version 18 or newer) from:
-echo https://nodejs.org/
-echo.
-echo After installing Node.js, restart your computer and run this file again.
-echo ===============================================================================
-echo.
-pause
-exit /b 1
-
-:INSTALL_ERROR
-echo.
-echo ===============================================================================
-echo [ERROR] npm install encountered an error.
-echo Please check your internet connection and try running 'npm install' manually.
-echo ===============================================================================
-echo.
-pause
-exit /b 1
-
-:DEV_ERROR
-echo.
-echo ===============================================================================
-echo [ERROR] The application stopped unexpectedly.
-echo ===============================================================================
-echo.
-pause
-exit /b 1
-
-:END
-echo.
-pause
+echo Press any key to exit...
+pause >nul

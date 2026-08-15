@@ -1,5 +1,5 @@
 @echo off
-rem Switch to the directory where this script is located
+setlocal EnableDelayedExpansion
 cd /d "%~dp0"
 title Smart Translate SPA - Build Windows Desktop (.exe)
 
@@ -8,51 +8,72 @@ echo          Smart Translate SPA - Build Windows Desktop Package (.exe)
 echo ===============================================================================
 echo.
 
-rem Step 1: Check Node.js
 echo [1/4] Checking Node.js runtime...
-node -v >nul 2>&1
-if %ERRORLEVEL% NEQ 0 goto NO_NODE
+where node >nul 2>&1
+if errorlevel 1 (
+    echo.
+    echo ===============================================================================
+    echo [ERROR] Node.js is required to build the executable!
+    echo Please install Node.js from https://nodejs.org/
+    echo ===============================================================================
+    echo.
+    pause
+    goto EXIT_SCRIPT
+)
 
-echo [SUCCESS] Node.js is ready:
-node -v
+for /f "tokens=*" %%v in ('node -v 2^>nul') do set NODE_VERSION=%%v
+echo [SUCCESS] Node.js is ready: !NODE_VERSION!
 echo.
 
-rem Step 2: Verify Electron and dependencies
-echo [2/4] Verifying dependencies and Electron build tools...
-if not exist "node_modules\" (
+echo [2/4] Checking dependencies and Electron tools...
+if not exist "%~dp0node_modules\" (
     echo [INFO] Installing project dependencies (npm install)...
     call npm install
-    if %ERRORLEVEL% NEQ 0 goto INSTALL_ERROR
+    if errorlevel 1 (
+        echo [ERROR] Failed to install dependencies.
+        pause
+        goto EXIT_SCRIPT
+    )
 )
 
-rem Check if electron-builder is installed locally
-if not exist "node_modules\electron-builder\" (
-    echo [INFO] Installing Electron and Electron-Builder packaging tools...
+if not exist "%~dp0node_modules\electron-builder\" (
+    echo [INFO] Installing Electron and packaging tools...
     call npm install -D electron electron-builder
-    if %ERRORLEVEL% NEQ 0 goto INSTALL_ERROR
+    if errorlevel 1 (
+        echo [ERROR] Failed to install electron-builder.
+        pause
+        goto EXIT_SCRIPT
+    )
 )
-echo [SUCCESS] Electron build tools verified.
+echo [SUCCESS] Build tools ready.
 echo.
 
-rem Step 3: Compile Web Assets
 echo [3/4] Compiling frontend application (npm run build)...
 call npm run build
-if %ERRORLEVEL% NEQ 0 goto BUILD_ERROR
-echo.
-echo [SUCCESS] Web assets compiled into 'dist' directory.
-echo.
-
-rem Step 4: Run Electron Builder
-echo [4/4] Packaging Windows Setup Installer and Portable .exe...
-echo Note: electron-builder will download necessary Windows binaries on first build.
-echo.
-
-call .\node_modules\.bin\electron-builder.cmd --win --config electron-builder.json
-if %ERRORLEVEL% NEQ 0 (
-    echo [INFO] Retrying with npx electron-builder...
-    call npx --no-install electron-builder --win --config electron-builder.json
+if errorlevel 1 (
+    echo.
+    echo [ERROR] Frontend compilation (npm run build) failed.
+    pause
+    goto EXIT_SCRIPT
 )
-if %ERRORLEVEL% NEQ 0 goto ELECTRON_ERROR
+echo.
+echo [SUCCESS] Web assets compiled into 'dist' folder.
+echo.
+
+echo [4/4] Generating Windows Installer and Portable .exe...
+echo Please wait while electron-builder packages the desktop app...
+echo.
+
+call npx electron-builder --win --config electron-builder.json
+if errorlevel 1 (
+    echo.
+    echo ===============================================================================
+    echo [ERROR] electron-builder encountered an issue while packaging.
+    echo ===============================================================================
+    echo.
+    pause
+    goto EXIT_SCRIPT
+)
 
 echo.
 echo ===============================================================================
@@ -66,50 +87,7 @@ if exist "%~dp0release" (
     explorer "%~dp0release"
 )
 
-goto END
-
-:NO_NODE
+:EXIT_SCRIPT
 echo.
-echo ===============================================================================
-echo [ERROR] Node.js is required to build the executable.
-echo Please install Node.js from https://nodejs.org/
-echo ===============================================================================
-echo.
-pause
-exit /b 1
-
-:INSTALL_ERROR
-echo.
-echo ===============================================================================
-echo [ERROR] Failed to install project dependencies.
-echo Please check your internet connection or run 'npm install' manually.
-echo ===============================================================================
-echo.
-pause
-exit /b 1
-
-:BUILD_ERROR
-echo.
-echo ===============================================================================
-echo [ERROR] Frontend compilation (npm run build) failed.
-echo Please inspect the error logs above.
-echo ===============================================================================
-echo.
-pause
-exit /b 1
-
-:ELECTRON_ERROR
-echo.
-echo ===============================================================================
-echo [ERROR] electron-builder encountered an issue while packaging.
-echo Please try running:
-echo   npm install -D electron electron-builder
-echo   npm run dist:win
-echo ===============================================================================
-echo.
-pause
-exit /b 1
-
-:END
-echo.
-pause
+echo Press any key to exit...
+pause >nul

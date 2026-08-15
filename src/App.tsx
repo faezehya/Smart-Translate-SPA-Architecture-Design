@@ -233,6 +233,52 @@ export function App() {
     );
   };
 
+  // Retry a single chunk that failed
+  const handleRetryChunk = async (docId: string, chunkId: number) => {
+    const doc = documents.find((d) => d.id === docId);
+    if (!doc) return;
+    const chunk = doc.chunks.find((c) => c.id === chunkId);
+    if (!chunk) return;
+
+    // Mark as translating
+    setDocuments((prev) =>
+      prev.map((d) => {
+        if (d.id !== docId) return d;
+        const updated = d.chunks.map((c) =>
+          c.id === chunkId ? { ...c, status: 'translating' as const } : c
+        );
+        return { ...d, chunks: updated };
+      })
+    );
+
+    try {
+      const translated = await TranslationEngines.translate(chunk.source, settings);
+      setDocuments((prev) =>
+        prev.map((d) => {
+          if (d.id !== docId) return d;
+          const updated = d.chunks.map((c) =>
+            c.id === chunkId ? { ...c, target: translated, status: 'done' as const } : c
+          );
+          const doneCount = updated.filter((c) => c.status === 'done').length;
+          const progress = Math.round((doneCount / (updated.length || 1)) * 100);
+          return { ...d, chunks: updated, progress };
+        })
+      );
+      showToast(`قطعه #${chunkId} با موفقیت ترجمه شد`, 'success');
+    } catch (err: any) {
+      setDocuments((prev) =>
+        prev.map((d) => {
+          if (d.id !== docId) return d;
+          const updated = d.chunks.map((c) =>
+            c.id === chunkId ? { ...c, status: 'error' as const, errorMsg: err.message } : c
+          );
+          return { ...d, chunks: updated };
+        })
+      );
+      showToast(`خطا در ترجمه مجدد قطعه #${chunkId}: ${err.message}`, 'error');
+    }
+  };
+
   // Start Batch Translation
   const handleStartTranslation = async () => {
     if (documents.length === 0) {
@@ -404,6 +450,7 @@ export function App() {
             onUpdateTone={(tone: TonePreset) => updateSettings({ tone })}
             onToggleSyncScroll={(enabled: boolean) => updateSettings({ syncScroll: enabled })}
             onOpenExportModal={() => setIsExportOpen(true)}
+            onRetryChunk={handleRetryChunk}
           />
         )}
       </main>

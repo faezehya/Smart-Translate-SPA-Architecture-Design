@@ -1,5 +1,5 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { Download, Sparkles, SlidersHorizontal, Check, RefreshCcw, Layers } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { Download, RotateCcw, AlertCircle, Sparkles, CheckCheck } from 'lucide-react';
 import { DocumentItem, TonePreset, AppSettings } from '../types';
 
 interface SplitPaneWorkspaceProps {
@@ -9,6 +9,7 @@ interface SplitPaneWorkspaceProps {
   onUpdateTone: (tone: TonePreset) => void;
   onToggleSyncScroll: (enabled: boolean) => void;
   onOpenExportModal: () => void;
+  onRetryChunk?: (docId: string, chunkId: number) => void;
 }
 
 export const SplitPaneWorkspace: React.FC<SplitPaneWorkspaceProps> = ({
@@ -17,7 +18,8 @@ export const SplitPaneWorkspace: React.FC<SplitPaneWorkspaceProps> = ({
   onUpdateChunkTarget,
   onUpdateTone,
   onToggleSyncScroll,
-  onOpenExportModal
+  onOpenExportModal,
+  onRetryChunk
 }) => {
   const [hoveredChunkId, setHoveredChunkId] = useState<number | null>(null);
 
@@ -56,6 +58,9 @@ export const SplitPaneWorkspace: React.FC<SplitPaneWorkspaceProps> = ({
     .split(/\s+/)
     .filter(Boolean).length;
 
+  const doneChunksCount = document.chunks.filter((c) => c.status === 'done').length;
+  const totalChunksCount = document.chunks.length;
+
   return (
     <section
       id="workspace-split-pane-section"
@@ -74,7 +79,14 @@ export const SplitPaneWorkspace: React.FC<SplitPaneWorkspaceProps> = ({
           </div>
 
           <span className="font-en text-xs px-2.5 py-0.5 rounded bg-[#16243f] border border-[#1e3152] text-[#38bdf8] font-bold">
-            {settings.engine === 'ollama' ? settings.ollamaModel || 'Ollama LLM' : 'Google API'}
+            {settings.engine === 'ollama'
+              ? `Ollama: ${settings.ollamaModel || 'بدون مدل'}`
+              : 'Google Translate API'}
+          </span>
+
+          <span className="text-xs text-[#94a9c9] hidden sm:inline-flex items-center gap-1 font-fa">
+            <CheckCheck className="w-3.5 h-3.5 text-[#10b981]" />
+            <span>{doneChunksCount} از {totalChunksCount} قطعه</span>
           </span>
         </div>
 
@@ -129,22 +141,31 @@ export const SplitPaneWorkspace: React.FC<SplitPaneWorkspaceProps> = ({
 
       {/* Split Panes Body */}
       <div className="grid grid-cols-1 lg:grid-cols-2 flex-1 h-[calc(100vh-340px)] min-h-[480px]">
-        {/* Source Pane (LTR) */}
-        <div className="flex flex-col border-b lg:border-b-0 lg:border-l border-[#1e3152] bg-[#070d18] overflow-hidden">
+        {/* Source Pane (LTR Strictly Enforced) */}
+        <div
+          dir="ltr"
+          className="flex flex-col border-b lg:border-b-0 lg:border-r border-[#1e3152] bg-[#070d18] overflow-hidden"
+          style={{ direction: 'ltr', textAlign: 'left' }}
+        >
           <div className="bg-[#0a1120] border-b border-[#1e3152] px-4 py-2.5 flex items-center justify-between text-xs font-bold text-[#94a9c9]">
-            <span className="uppercase tracking-wider font-en">SOURCE TEXT (ENGLISH)</span>
-            <span className="font-en text-[#94a9c9]">{sourceWordCount} words</span>
+            <span className="uppercase tracking-wider font-en font-bold text-[#cbd5e1]">
+              SOURCE TEXT (ENGLISH)
+            </span>
+            <span className="font-en text-[#38bdf8] font-semibold">{sourceWordCount} words</span>
           </div>
 
           <div
             ref={sourcePaneRef}
+            dir="ltr"
             onScroll={() => handleScroll('source')}
-            className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 font-en text-sm leading-relaxed text-[#94a9c9]"
+            className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 font-en text-[15px] leading-relaxed text-[#f8fafc]"
+            style={{ direction: 'ltr', textAlign: 'left' }}
           >
             {document.chunks.map((chunk) => (
               <div
                 key={`src-${chunk.id}`}
                 id={`source-chunk-${chunk.id}`}
+                dir="ltr"
                 onMouseEnter={() => setHoveredChunkId(chunk.id)}
                 onMouseLeave={() => setHoveredChunkId(null)}
                 className={`relative p-4 rounded-xl border transition-all duration-200 ${
@@ -152,32 +173,56 @@ export const SplitPaneWorkspace: React.FC<SplitPaneWorkspaceProps> = ({
                     ? 'bg-[#16243f] border-[#38bdf8]/60 text-white shadow-lg'
                     : 'bg-[#16243f]/40 border-[#1e3152]'
                 }`}
+                style={{ direction: 'ltr', textAlign: 'left' }}
               >
-                <span className="absolute top-2.5 left-3 font-en text-[10px] font-bold text-[#5e779d] select-none">
-                  CHUNK #{chunk.id}
-                </span>
-                <p className="whitespace-pre-wrap pt-3 select-text font-normal">{chunk.source}</p>
+                <div className="flex items-center justify-between pb-2 mb-2 border-b border-[#1e3152]/60">
+                  <span className="font-en text-[11px] font-bold text-[#38bdf8] tracking-wider select-none">
+                    CHUNK #{chunk.id}
+                  </span>
+                  <span className="font-en text-[10px] text-[#5e779d]">
+                    {chunk.source.split(/\s+/).filter(Boolean).length} words
+                  </span>
+                </div>
+                <p
+                  dir="ltr"
+                  className="whitespace-pre-wrap select-text font-normal font-en text-left text-[#f8fafc] text-[14.5px] leading-[1.75]"
+                  style={{
+                    direction: 'ltr',
+                    textAlign: 'left',
+                    unicodeBidi: 'isolate',
+                    fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif'
+                  }}
+                >
+                  {chunk.source}
+                </p>
               </div>
             ))}
           </div>
         </div>
 
         {/* Target Pane (RTL & Inline Editable) */}
-        <div className="flex flex-col bg-[#070d18] overflow-hidden">
+        <div
+          dir="rtl"
+          className="flex flex-col bg-[#070d18] overflow-hidden"
+          style={{ direction: 'rtl', textAlign: 'right' }}
+        >
           <div className="bg-[#0a1120] border-b border-[#1e3152] px-4 py-2.5 flex items-center justify-between text-xs font-bold text-[#94a9c9]">
-            <span>ترجمه مقصد (فارسی - با امکان ویرایش درجا)</span>
+            <span className="text-[#cbd5e1] font-bold">ترجمه مقصد (فارسی - با امکان ویرایش درجا)</span>
             <span className="text-[#38bdf8] font-semibold">{targetWordCount} کلمه</span>
           </div>
 
           <div
             ref={targetPaneRef}
+            dir="rtl"
             onScroll={() => handleScroll('target')}
             className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 font-fa text-base leading-[2] text-[#f1f5f9]"
+            style={{ direction: 'rtl', textAlign: 'right' }}
           >
             {document.chunks.map((chunk) => (
               <div
                 key={`tgt-${chunk.id}`}
                 id={`target-chunk-${chunk.id}`}
+                dir="rtl"
                 onMouseEnter={() => setHoveredChunkId(chunk.id)}
                 onMouseLeave={() => setHoveredChunkId(null)}
                 className={`relative p-4 rounded-xl border transition-all duration-200 ${
@@ -187,29 +232,54 @@ export const SplitPaneWorkspace: React.FC<SplitPaneWorkspaceProps> = ({
                     ? 'bg-[#16243f]/70 border-[#1e3152]'
                     : chunk.status === 'translating'
                     ? 'bg-[#38bdf8]/10 border-[#38bdf8]/40 animate-pulse'
+                    : chunk.status === 'error'
+                    ? 'bg-rose-950/20 border-rose-800/50'
                     : 'bg-[#0a1120] border-[#1e3152]'
                 }`}
+                style={{ direction: 'rtl', textAlign: 'right' }}
               >
-                <span className="absolute top-2.5 left-3 font-en text-[10px] font-bold text-[#5e779d] select-none">
-                  CHUNK #{chunk.id}
-                </span>
+                <div className="flex items-center justify-between pb-2 mb-2 border-b border-[#1e3152]/60">
+                  <span className="font-en text-[11px] font-bold text-[#38bdf8] tracking-wider select-none">
+                    CHUNK #{chunk.id}
+                  </span>
+                  {chunk.status === 'done' && (
+                    <span className="text-[11px] text-[#10b981] font-bold flex items-center gap-1">
+                      <Sparkles className="w-3 h-3" />
+                      ترجمه شده
+                    </span>
+                  )}
+                </div>
 
                 {chunk.status === 'translating' ? (
-                  <div className="py-3 flex items-center gap-2 text-[#38bdf8] text-sm font-medium">
-                    <span className="w-2 h-2 rounded-full bg-[#38bdf8] animate-ping" />
+                  <div className="py-4 flex items-center gap-2 text-[#38bdf8] text-sm font-medium">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#38bdf8] animate-ping" />
                     <span>درحال ترجمه هوشمند با مدل زبانی...</span>
                   </div>
                 ) : chunk.status === 'error' ? (
-                  <div className="text-rose-400 text-xs py-1">
-                    خطا در ترجمه: {chunk.errorMsg || 'پاسخ ناموفق'}
+                  <div className="py-2 space-y-2">
+                    <div className="flex items-center gap-1.5 text-rose-400 text-xs font-semibold">
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                      <span>خطا در ترجمه: {chunk.errorMsg || 'پاسخ ناموفق'}</span>
+                    </div>
+                    {onRetryChunk && (
+                      <button
+                        onClick={() => onRetryChunk(document.id, chunk.id)}
+                        className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 text-xs font-bold transition-all"
+                      >
+                        <RotateCcw className="w-3 h-3" />
+                        <span>تلاش مجدد این قطعه</span>
+                      </button>
+                    )}
                   </div>
                 ) : (
                   <textarea
                     value={chunk.target}
                     onChange={(e) => onUpdateChunkTarget(document.id, chunk.id, e.target.value)}
                     placeholder="در انتظار آغاز ترجمه..."
-                    rows={Math.max(2, chunk.source.split('\n').length)}
+                    rows={Math.max(2, (chunk.target || chunk.source).split('\n').length)}
+                    dir="rtl"
                     className="w-full bg-transparent border-0 resize-none text-[#f1f5f9] placeholder:text-[#5e779d] focus:outline-none focus:ring-0 leading-[2] font-fa text-base"
+                    style={{ direction: 'rtl', textAlign: 'right', unicodeBidi: 'isolate' }}
                   />
                 )}
               </div>

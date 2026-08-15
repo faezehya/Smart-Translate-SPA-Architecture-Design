@@ -1,6 +1,7 @@
 {
   "appId": "com.smarttranslate.spa",
   "productName": "Smart Translate SPA",
+  "executableName": "SmartTranslateSPA",
   "copyright": "Copyright © 2026 Smart Translate SPA",
   "directories": {
     "output": "release",

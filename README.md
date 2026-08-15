@@ -91,6 +91,12 @@ npm run dist:portable
 - `release/Smart Translate SPA Setup 1.0.0.exe` (فایل نصبی ویندوز با قابلیت ایجاد آیکون دسکتاپ و منوی استارت)
 - `release/Smart Translate SPA-Portable-1.0.0.exe` (نسخه پرتابل بدون نیاز به نصب)
 
+### ⚠️ رفع خطای رایج ENOENT هنگام تغییر نام electron.exe در ویندوز:
+اگر با خطایی مشابه `ENOENT: no such file or directory, rename electron.exe -> Smart Translate SPA.exe` مواجه شدید:
+1. **آنتی‌ویروس یا ویندوز دیفندر (Windows Defender):** در لحظه بسته‌بندی، آنتی‌ویروس فایل موقت `electron.exe` را اسکن و قفل می‌کند. برای حل آن کافیست پوشه پروژه را در آنتی‌ویروس جزو لیست استثناها (Exclusion) قرار دهید یا موقتاً Real-Time Protection را غیرفعال کنید.
+2. **بستن پروسه‌های قبلی:** مطمئن شوید نسخه قبلی برنامه یا پروسه Electron در Task Manager در حال اجرا نیست (اسکریپت‌های `.bat` جدید این کار را به صورت خودکار انجام می‌دهند).
+3. **حذف پوشه release:** پوشه `release` را حذف کرده و مجدداً اقدام به بیلد نمایید.
+
 ---
 
 ## 🎨 تایپوگرافی و طراحی Editorial Aesthetic

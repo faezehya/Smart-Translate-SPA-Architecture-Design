@@ -1,50 +1,52 @@
 @echo off
-chcp 65001 >nul
-title Smart Translate SPA - ساخت فایل نصبی ویندوز (.exe)
+setlocal EnableDelayedExpansion
+title Smart Translate SPA - Build Windows Executable (.exe)
 cls
 
 echo ===============================================================================
-echo     بسته‌بندی و ساخت خروجی اجرایی ویندوز (Smart Translate SPA Desktop .exe)
+echo          Smart Translate SPA - Build Windows Desktop Package (.exe)
 echo ===============================================================================
 echo.
 
 :: 1. Check Node.js
-echo [1/4] بررسی وجود Node.js...
+echo [1/4] Checking Node.js runtime...
 where node >nul 2>nul
 if %errorlevel% neq 0 (
-    echo [خطا] Node.js در سیستم یافت نشد. لطفا ابتدا Node.js را نصب فرمایید.
+    echo [ERROR] Node.js is required to build the executable.
+    echo Please install Node.js from https://nodejs.org/
     pause
     exit /b 1
 )
 
 :: 2. Check dependencies
-echo [2/4] بررسی و نصب وابستگی‌های پکیج و Electron...
+echo [2/4] Verifying dependencies (node_modules)...
 if not exist "node_modules\" (
-    echo در حال نصب وابستگی‌های پروژه (npm install)...
+    echo [INFO] Installing required dependencies (npm install)...
     call npm install
 )
 
 :: 3. Build Web Assets
-echo [3/4] کامپایل و ساخت کدهای فرانت‌اند (npm run build)...
+echo [3/4] Compiling frontend application (npm run build)...
 call npm run build
 if %errorlevel% neq 0 (
-    echo [خطا] در فرآیند بیلد کدهای پروژه خطایی رخ داد!
+    echo [ERROR] Build failed! Please review the error log above.
     pause
     exit /b 1
 )
-echo [موفق] فایل‌های بهینه شده در پوشه dist ایجاد شدند.
+echo [SUCCESS] Web assets compiled into 'dist' folder.
 echo.
 
 :: 4. Run Electron Builder
-echo [4/4] ساخت فایل نصبی و پرتابل ویندوز با electron-builder...
-echo این فرآیند ممکن است چند دقیقه طول بکشد، لطفاً شکیبا باشید...
+echo [4/4] Generating Windows Installer and Portable .exe with electron-builder...
+echo This process may take a few minutes on first run. Please wait...
 echo.
 
 call npx electron-builder --win --config electron-builder.json
 
 if %errorlevel% neq 0 (
     echo.
-    echo [راهنما] در صورت عدم دانلود خودکار پکیج‌های بیلد، دستور زیر را اجرا کنید:
+    echo [ERROR] electron-builder encountered an issue.
+    echo If electron/electron-builder is not installed, you can install it via:
     echo npm install -D electron electron-builder
     echo.
     pause
@@ -53,13 +55,14 @@ if %errorlevel% neq 0 (
 
 echo.
 echo ===============================================================================
-echo [تبریک] فایل نصبی (.exe) و پرتابل با موفقیت در پوشه «release» ساخته شد!
+echo [SUCCESS] Windows Setup Installer and Portable .exe created in 'release' folder!
 echo ===============================================================================
 echo.
-echo پوشه خروجی: %~dp0release
+echo Output Directory: %~dp0release
 echo.
 
-:: Open the release folder in Windows File Explorer
-explorer "%~dp0release"
+if exist "%~dp0release" (
+    explorer "%~dp0release"
+)
 
 pause

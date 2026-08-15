@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, FileText, Download, Copy, Printer, Check, FileCode, CheckCircle2 } from 'lucide-react';
+import { X, FileText, Download, Copy, Printer, Check, FileCode } from 'lucide-react';
 import { DocumentItem } from '../types';
 
 interface ExportModalProps {
@@ -23,8 +23,9 @@ export const ExportModal: React.FC<ExportModalProps> = ({
     .map((c) => c.target || c.source)
     .join('\n\n');
 
-  const downloadFile = (content: string, filename: string, type: string) => {
-    const blob = new Blob([content], { type });
+  const downloadFile = (content: string, filename: string, mimeType: string) => {
+    // Prepend UTF-8 BOM (\uFEFF) to guarantee 100% correct Persian character rendering in all Windows apps
+    const blob = new Blob(['\uFEFF' + content], { type: `${mimeType};charset=utf-8` });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -36,12 +37,12 @@ export const ExportModal: React.FC<ExportModalProps> = ({
 
   const handleExportTxt = () => {
     const filename = `${document.name.replace(/\.[^/.]+$/, '')}_translated.txt`;
-    downloadFile(combinedTranslatedText, filename, 'text/plain;charset=utf-8');
+    downloadFile(combinedTranslatedText, filename, 'text/plain');
   };
 
   const handleExportMd = () => {
     const filename = `${document.name.replace(/\.[^/.]+$/, '')}_translated.md`;
-    downloadFile(combinedTranslatedText, filename, 'text/markdown;charset=utf-8');
+    downloadFile(combinedTranslatedText, filename, 'text/markdown');
   };
 
   const handleExportDocx = () => {
@@ -49,10 +50,10 @@ export const ExportModal: React.FC<ExportModalProps> = ({
     const docHtml = `
       <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
       <head>
-        <meta charset='utf-8'>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
         <title>${document.name}</title>
         <style>
-          body { font-family: 'Vazirmatn', 'Arial', sans-serif; direction: rtl; text-align: right; line-height: 1.8; font-size: 14pt; }
+          body { font-family: 'Vazirmatn', 'Arial', sans-serif; direction: rtl; text-align: right; line-height: 1.9; font-size: 14pt; color: #111111; }
           p { margin-bottom: 14pt; }
         </style>
       </head>
@@ -61,7 +62,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
       </body>
       </html>
     `;
-    downloadFile(docHtml, filename, 'application/msword;charset=utf-8');
+    downloadFile(docHtml, filename, 'application/msword');
   };
 
   const handleCopy = () => {
@@ -81,9 +82,10 @@ export const ExportModal: React.FC<ExportModalProps> = ({
     printWindow.document.write(`
       <html lang="fa" dir="rtl">
         <head>
+          <meta charset="utf-8">
           <title>${document.name} - ترجمه فارسی</title>
           <style>
-            body { font-family: 'Vazirmatn', sans-serif; padding: 40px; line-height: 2; font-size: 16px; color: #111; }
+            body { font-family: 'Vazirmatn', -apple-system, sans-serif; padding: 40px; line-height: 2; font-size: 16px; color: #111; direction: rtl; text-align: right; }
             h1 { border-bottom: 2px solid #333; padding-bottom: 10px; font-size: 20px; }
             p { margin-bottom: 20px; }
           </style>

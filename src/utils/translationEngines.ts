@@ -1,6 +1,13 @@
 import { AppSettings, OllamaModel } from '../types';
 import { PersianNormalizer } from './persianNormalizer';
 
+function decodeHtmlEntities(str: string): string {
+  if (!str) return '';
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = str;
+  return textarea.value;
+}
+
 export const TranslationEngines = {
   /**
    * Probe Ollama local servers and retrieve list of available models
@@ -34,7 +41,7 @@ export const TranslationEngines = {
           const models: OllamaModel[] = data.models || [];
           return { connectedHost: host, models };
         }
-      } catch (err: any) {
+      } catch {
         // Continue to next candidate
       }
     }
@@ -63,7 +70,7 @@ export const TranslationEngines = {
 
     const payload = {
       model: settings.ollamaModel,
-      prompt: `متن زیر را با دقت بالا به فارسی ترجمه کن:\n\n${chunkText}`,
+      prompt: `متن زیر را با دقت بالا به زبان فارسی شیوا و روان ترجمه کن. فقط ترجمه نهایی را بازگردان:\n\n${chunkText}`,
       system: systemPromptWithTone,
       stream: false,
       options: {
@@ -87,6 +94,8 @@ export const TranslationEngines = {
 
     if (settings.autoHalfSpace) {
       result = PersianNormalizer.normalize(result);
+    } else {
+      result = PersianNormalizer.cleanUnicode(result);
     }
 
     return result;
@@ -141,8 +150,13 @@ export const TranslationEngines = {
       }
     }
 
+    // Decode any HTML entities returned by translation service
+    result = decodeHtmlEntities(result);
+
     if (settings.autoHalfSpace) {
       result = PersianNormalizer.normalize(result);
+    } else {
+      result = PersianNormalizer.cleanUnicode(result);
     }
 
     return result;

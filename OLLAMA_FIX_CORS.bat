@@ -1,22 +1,23 @@
 @echo off
-chcp 65001 >nul
-title Smart Translate SPA - پیکربندی Ollama CORS برای ویندوز
+setlocal EnableDelayedExpansion
+title Smart Translate SPA - Fix Ollama CORS
 cls
 
 echo ===============================================================================
-echo     رفع خطای اتصال مرورگر به Ollama (CORS Configuration)
+echo                Fix Ollama CORS Configuration for Windows
 echo ===============================================================================
 echo.
-echo در حال تنظیم متغیر محیطی OLLAMA_ORIGINS برای دسترسی ایمن مرورگر به مدل‌های Ollama...
+echo Setting environment variable OLLAMA_ORIGINS=* for Ollama browser access...
 echo.
 
-powershell -Command "[System.Environment]::SetEnvironmentVariable('OLLAMA_ORIGINS', '*', 'User')"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "[System.Environment]::SetEnvironmentVariable('OLLAMA_ORIGINS', '*', 'User')"
 
-echo [موفق] متغیر OLLAMA_ORIGINS با مقدار * برای حساب کاربری شما ذخیره شد.
+echo [SUCCESS] OLLAMA_ORIGINS variable is now configured with value '*'.
 echo.
-echo نکات مهم:
-echo ۱. اگر سرویس Ollama در تسک‌بار (Taskbar) در حال اجراست، روی آیکون آن راست‌کلیک کرده و Quit را بزنید و سپس مجدداً Ollama را باز کنید.
-echo ۲. در پنجره تنظیمات برنامه Smart Translate SPA، دکمه «بررسی و دریافت» مدل‌ها را بزنید تا لیست مدل‌های نصب‌شده مانند llama3، qwen2.5 یا gemma2 بارگذاری شوند.
+echo Important Notes:
+echo 1. If the Ollama service/app is currently running in your system tray (Taskbar),
+echo    right-click its icon, select 'Quit Ollama', and start Ollama again.
+echo 2. In Smart Translate SPA Settings, click 'Probe Models' to load your local models.
 echo.
 echo ===============================================================================
 pause

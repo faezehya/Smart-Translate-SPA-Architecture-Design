@@ -1,11 +1,14 @@
 import { TranslationChunk } from '../types';
+import { PersianNormalizer } from './persianNormalizer';
 
 export const ChunkEngine = {
   split(text: string, wordLimit = 180): TranslationChunk[] {
     if (!text || !text.trim()) return [];
 
+    const cleanedText = PersianNormalizer.cleanUnicode(text);
+
     // Split text into paragraphs
-    const rawParagraphs = text.split(/\n\s*\n/);
+    const rawParagraphs = cleanedText.split(/\n\s*\n/);
     const chunks: string[] = [];
     let currentChunk: string[] = [];
     let currentWordCount = 0;
@@ -18,7 +21,7 @@ export const ChunkEngine = {
 
       // If a single paragraph is larger than the word limit, segment it by sentences
       if (words.length > wordLimit) {
-        const sentences = trimmed.match(/[^.!?]+[.!?]+(\s|$)|[^.!?]+$/g) || [trimmed];
+        const sentences = trimmed.match(/[^.!?؟\n]+[.!?؟]+(?:\s|$)|[^.!?؟\n]+$/g) || [trimmed];
         for (const sentence of sentences) {
           const sTrimmed = sentence.trim();
           if (!sTrimmed) continue;
